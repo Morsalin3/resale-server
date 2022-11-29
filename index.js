@@ -23,7 +23,7 @@ function verifyJWT(req, res, next){
         return res.status(401).send('unauthorized access');
     }
 
-    const token = authHeader.splite(' ')[1];
+    const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
         if(err){
             return res.status(403).send({message:'forbidden access'})
@@ -45,7 +45,7 @@ async function run(){
             const query = {email: decodedEmail};
             const user = await usersCollection.findOne(query);
             if(user?.role !== 'admin'){
-                return res.send.status(403).send({message: 'forbidden access'})
+                return res.status(403).send({message: 'forbidden access'})
             }
             next();
         }
@@ -54,7 +54,7 @@ async function run(){
             const query = {email: decodedEmail};
             const user = await usersCollection.findOne(query);
             if(user?.role !== 'buyer'){
-                return res.send.status(403).send({message: 'forbidden access'})
+                return res.status(403).send({message: 'forbidden access'})
             }
             next();
         }
@@ -63,7 +63,7 @@ async function run(){
             const query = {email: decodedEmail};
             const user = await usersCollection.findOne(query);
             if(user?.role !== 'seller'){
-                return res.send.status(403).send({message: 'forbidden access'})
+                return res.status(403).send({message: 'forbidden access'})
             }
             next();
         }
@@ -87,7 +87,7 @@ async function run(){
             res.send(result);
         });
         // post products
-        app.post('/products', async(req, res)=>{
+        app.post('/products',verifyJWT, verifySeller, async(req, res)=>{
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.send(result);
@@ -114,7 +114,7 @@ async function run(){
         });
 
         // delete users
-        app.delete('/users/:id', async(req, res)=>{
+        app.delete('/users/:id', verifyJWT, verifyAdmin, async(req, res)=>{
             const id = req.params.id;
             const filter = {_id: ObjectId(id)};
             const result = await usersCollection.deleteOne(filter);
@@ -147,11 +147,11 @@ async function run(){
         });
 
         // post product
-        app.post('/products', async(req, res)=>{
-            const product = req.body;
-            const result = await productsCollection.insertOne(product);
-            res.send(result)
-        })
+        // app.post('/products', async(req, res)=>{
+        //     const product = req.body;
+        //     const result = await productsCollection.insertOne(product);
+        //     res.send(result)
+        // })
 
 
 
