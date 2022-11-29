@@ -40,6 +40,33 @@ async function run(){
         const productsCollection = client.db("swap").collection('products');
 
 
+        const verifyAdmin = async (req, res, next)=>{
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'admin'){
+                return res.send.status(403).send({message: 'forbidden access'})
+            }
+            next();
+        }
+        const verifyBuyer = async (req, res, next)=>{
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'buyer'){
+                return res.send.status(403).send({message: 'forbidden access'})
+            }
+            next();
+        }
+        const verifySeller = async (req, res, next)=>{
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'seller'){
+                return res.send.status(403).send({message: 'forbidden access'})
+            }
+            next();
+        }
         // jwt token
         app.get('/jwt', async(req, res)=>{
             const email = req.query.email;
