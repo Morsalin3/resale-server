@@ -17,6 +17,22 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 // console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        return res.status(401).send('unauthorized access');
+    }
+
+    const token = authHeader.splite(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
+        if(err){
+            return res.status(403).send({message:'forbidden access'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run(){
     try{
         const categoryCollection = client.db("swap").collection("category");
@@ -34,7 +50,7 @@ async function run(){
                 const token = jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '1h'})
                 return res.send({accessToken: token})
             }
-            console.log(user);
+            // console.log(user);
             res.status(403).send({accessToken: ''})
         });
 
@@ -49,6 +65,19 @@ async function run(){
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result)
+        });
+
+         //get sellers
+         app.get('/users/sellers', async(req, res)=>{
+            const query = {role: "seller"}; 
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        });
+         //get buyers
+         app.get('/users/buyers', async(req, res)=>{
+            const query = {role: "buyer"}; 
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
         });
 
         // get isadmin
@@ -75,6 +104,7 @@ async function run(){
             // console.log('buyer', user)
             res.send({isBuyer: user?.role === 'buyer'});
         });
+
         // post product
         app.post('/products', async(req, res)=>{
             const product = req.body;
