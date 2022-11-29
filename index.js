@@ -1,6 +1,6 @@
 const express = require('express');
 const  cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -43,7 +43,7 @@ async function run(){
         // jwt token
         app.get('/jwt', async(req, res)=>{
             const email = req.query.email;
-            console.log(email)
+            // console.log(email)
             const query = {email: email}
             const user = await usersCollection.findOne(query)
             if(user){
@@ -59,6 +59,12 @@ async function run(){
             const result = await categoryCollection.find(query).toArray();
             res.send(result);
         });
+        // post products
+        app.post('/products', async(req, res)=>{
+            const product = req.body;
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
+        })
 
         // post users on database
         app.post('/users', async(req, res)=>{
@@ -79,6 +85,14 @@ async function run(){
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         });
+
+        // delete users
+        app.delete('/users/:id', async(req, res)=>{
+            const id = req.params.id;
+            const filter = {_id: ObjectId(id)};
+            const result = await usersCollection.deleteOne(filter);
+            res.send(result);
+        })
 
         // get isadmin
         app.get('/users/admin/:email', async(req, res)=>{
