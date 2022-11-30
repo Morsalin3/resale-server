@@ -86,13 +86,20 @@ async function run(){
             const result = await categoryCollection.find(query).toArray();
             res.send(result);
         });
+        // get products by category
+        app.get('/category/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query ={category_id: id};
+            const filter = await productsCollection.find(query).toArray();
+            res.send(filter);
+        })
         // post products
         app.post('/products',verifyJWT, verifySeller, async(req, res)=>{
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.send(result);
         });
-          //get products
+          //get my products
           app.get('/products',verifyJWT,verifySeller, async(req, res)=>{
             const email =req.query.email;
             // const decodedEmail = req.decoded.email;
@@ -105,10 +112,33 @@ async function run(){
             res.send(result);
           });
           // delete product
-          app.delete('/products:id', async(req, res)=>{
+          app.delete('/products/:id',verifyJWT,verifySeller, async(req, res)=>{
             const id = req.params.id;
             const filter ={_id: ObjectId(id)};
             const result = await productsCollection.deleteOne(filter);
+            res.send(result);
+          })
+
+          // verify user
+          app.put('/users/admin/:email', verifyJWT, async(req, res)=>{
+            const decodedEmail = req.decoded.email;
+            const query = {email: decodedEmail};
+            const user = await usersCollection.findOne(query)
+
+            if(user?.role !== 'admin'){
+                return res.status(403).send({message: 'forbidden access'});
+            }
+            
+            const email = req.params.email;
+            const filter = {email: email};
+            const options ={ upsert: true};
+            const updatedDoc ={
+                $set:{
+                    isVerified: 'verified'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc,options);
+            // const result2 = await productsCollection.updateOne(filter, updatedDoc,options);
             res.send(result);
           })
 
