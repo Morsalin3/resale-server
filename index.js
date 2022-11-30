@@ -38,6 +38,7 @@ async function run(){
         const categoryCollection = client.db("swap").collection("category");
         const usersCollection = client.db("swap").collection('users');
         const productsCollection = client.db("swap").collection('products');
+        const bookingsCollection = client.db("swap").collection('bookings');
 
 
         const verifyAdmin = async (req, res, next)=>{
@@ -111,6 +112,24 @@ async function run(){
             const result = await productsCollection.find(query).toArray();
             res.send(result);
           });
+
+          // post bookings
+          app.post('/bookings', async(req, res)=>{
+            const booking = req.body
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+          });
+          //get bookings
+          app.get('/bookings', verifyJWT, async(req, res)=>{
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if(email !== decodedEmail){
+                return res.status(403).send({message: "forbidden access"})
+            }
+            const query = {email: email};
+            const bookings = await bookingsCollection.find(query).toArray();
+            res.send(bookings);
+          })
           // delete product
           app.delete('/products/:id',verifyJWT,verifySeller, async(req, res)=>{
             const id = req.params.id;
@@ -137,9 +156,9 @@ async function run(){
                     isVerified: 'verified'
                 }
             }
+            const result2 = await productsCollection.updateOne(filter, updatedDoc,options);
             const result = await usersCollection.updateOne(filter, updatedDoc,options);
-            // const result2 = await productsCollection.updateOne(filter, updatedDoc,options);
-            res.send(result);
+            res.send({result, result2});
           })
 
         // post users on database
