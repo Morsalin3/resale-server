@@ -91,7 +91,20 @@ async function run(){
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.send(result);
-        })
+        });
+          //get products
+          app.get('/products',verifyJWT,verifySeller, async(req, res)=>{
+            const email =req.query.email;
+            // const decodedEmail = req.decoded.email;
+
+            // if(email !== decodedEmail){
+            //     return res.status(403).send({message: 'forbidden access'})
+            // }
+            const query = {email: email}
+            const result = await productsCollection.find(query).toArray();
+            res.send(result);
+          })
+
 
         // post users on database
         app.post('/users', async(req, res)=>{
