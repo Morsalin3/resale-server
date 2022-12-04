@@ -103,11 +103,6 @@ async function run(){
           //get my products
           app.get('/products',verifyJWT,verifySeller, async(req, res)=>{
             const email =req.query.email;
-            // const decodedEmail = req.decoded.email;
-
-            // if(email !== decodedEmail){
-            //     return res.status(403).send({message: 'forbidden access'})
-            // }
             const query = {email: email}
             const result = await productsCollection.find(query).toArray();
             res.send(result);
@@ -156,7 +151,7 @@ async function run(){
                     isVerified: 'verified'
                 }
             }
-            const result2 = await productsCollection.updateOne(filter, updatedDoc,options);
+            const result2 = await productsCollection.updateMany(filter, updatedDoc,options);
             const result = await usersCollection.updateOne(filter, updatedDoc,options);
             res.send({result, result2});
           })
@@ -168,20 +163,20 @@ async function run(){
             res.send(result)
         });
 
-         //get sellers
+         //get all sellers
          app.get('/users/sellers', async(req, res)=>{
             const query = {role: "seller"}; 
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         });
-         //get buyers
+         //get all buyers
          app.get('/users/buyers', async(req, res)=>{
             const query = {role: "buyer"}; 
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         });
 
-        // delete users
+        // delete a users
         app.delete('/users/:id', verifyJWT, verifyAdmin, async(req, res)=>{
             const id = req.params.id;
             const filter = {_id: ObjectId(id)};
@@ -213,13 +208,6 @@ async function run(){
             // console.log('buyer', user)
             res.send({isBuyer: user?.role === 'buyer'});
         });
-
-        // post product
-        // app.post('/products', async(req, res)=>{
-        //     const product = req.body;
-        //     const result = await productsCollection.insertOne(product);
-        //     res.send(result)
-        // })
 
 
 
